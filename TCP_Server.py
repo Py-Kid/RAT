@@ -22,6 +22,7 @@ class TCPHandler(socketserver.BaseRequestHandler):
                         self.request.send("1".encode("utf-8"))
                         print('close')
                         recvthread.join()
+                        sys.exit()
                     else:
                         self.request.send(cmd.encode("utf-8"))
             except sock_error as e:
@@ -58,6 +59,9 @@ class TCPServer:
         sendp(packet)
         print('sent')
 
+    def start_handler(self, conn, addr):
+        self.server.finish_request(conn, addr)
+
     def main(self):
         command_list = ["help", "list", "connect"]
         print("Type help for a list of commands")
@@ -73,7 +77,9 @@ class TCPServer:
                     print("{}\n".format(list(enumerate(self.stored_sockets))))
                     num = int(input("Which connection, choose from list: "))
                     addr, conn = self.stored_sockets[num][0], self.stored_sockets[num][1]
-                    self.server.finish_request(conn, addr)
+                    handler_thread = threading.Thread(target=(self.start_handler), args=(conn, addr))
+                    handler_thread.start()
+                    handler_thread.join()
 
                 elif main_cmd == "ping":
                     port = int(input("Which port: "))
