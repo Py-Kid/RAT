@@ -1,19 +1,19 @@
 # RATTTY
 ***
-Required packages:
-1. Scapy
+
 
 ## Description
-RAATTTY is desgined to allow the sending and receiving of commonds between remote hosts. The package consists of a server
+RATTTY is designed to allow the sending and receiving of commands between remote hosts. The package consists of a server
 and an agent. 
 ***
 ## Usage
-There are some considerations to make before deploying the TCPClient agent, which port will the agent listen on. 
-Once the port has been decided set the local port(self.LPORT) in TCPClient to the desired port. Start the TCPServer and TCPClient
-in TCPServer enter ping in the prompt. Ping sends a TCP packet to the agent on the set listening port. This triggerns the
-agent to initiate a connection with the server. 
+Set the RHOST and RPORT variables in TCP_Client to the machine that wil be running TCP_Server and run it.
+Set the LHOST and LPORT to route-able IP or private ones if being deployed on a LAN and start it. 
+
 
 ### Server Commands
 kill: Ends the connection and returns user to the main prompt
-keylogger(deprecated): Starts the keylogger
+help: Shows available commands
+list: Shows connect agents
+connect: opens a shell with desired agent
 ***
